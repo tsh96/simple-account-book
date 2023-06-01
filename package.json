@@ -33,6 +33,7 @@
     "naive-ui": "^2.34.4",
     "pnpm": "^8.5.1",
     "pug": "^3.0.2",
+    "sass": "^1.62.1",
     "simple-git-hooks": "^2.8.1",
     "taze": "^0.10.1",
     "typescript": "^5.0.4",

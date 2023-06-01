@@ -31,6 +31,16 @@ const accumulatedAmounts = computed(() => {
   })
 })
 
+const dataClasses = computed(() => {
+  return transactions.value.map((transaction) => {
+    return {
+      credit: transaction.credit > 0 ? 'input-green' : 'input-grey',
+      debit: transaction.debit > 0 ? 'input-red' : 'input-grey',
+      accumulated: transaction.credit - transaction.debit === 0 ? 'input-grey' : transaction.credit - transaction.debit > 0 ? 'input-green' : 'input-red',
+    }
+  })
+})
+
 function addTransaction() {
   const today = new Date()
   today.setHours(0, 0, 0, 0)
@@ -94,44 +104,67 @@ function upload() {
 </script>
 
 <template lang="pug">
-n-layout.mx-8
+.mx-8.flex.flex-col.h-screen.gap-y-2
   h1(text="4xl" flex) Simple Account Book
     n-button(text @click="upload()")
       .i-carbon-upload.text-3xl
     n-button(text @click="download()")
       .i-carbon-download.text-3xl
-  n-table(size="small")
-    thead
-      tr
-        th
-        th Date
-        th Description
-        th Credit
-        th Debit
-        th Accumulated
-        th
-          .i-carbon-add-alt(hover="bg-green-7 cursor-pointer" @click="addTransaction")
-    tbody
-      tr(
-        v-for="transaction, i in transactions"
-        :draggable="i === draggableRow"
-        @dragstart="draggingIndex = i"
-        @dragover.prevent
-        @drop="dropTransaction(i)"
-      )
-        td
-          .i-carbon-drag-vertical.cursor-move(
-            @mousedown="draggableRow = i"
-          )
-        td
-          n-date-picker(v-model:value="transaction.date" type="date")
-        td
-          n-input(v-model:value="transaction.description")
-        td
-          n-input-number(v-model:value="transaction.credit" step="0.01" :format="v => v?.toFixed(2) || ''")
-        td
-          n-input-number(v-model:value="transaction.debit" step="0.01" :format="v => v?.toFixed(2) || ''")
-        td {{ accumulatedAmounts[i].toFixed(2) }}
-        td
-          .i-carbon-subtract-alt(hover="bg-red-7 cursor-pointer" @click="removeTransaction(i)")
+  .overflow-auto.flex-grow.outline.outline-1.outline-grey.pb-100
+    n-table(:bordered="false" style="overflow: visible;" size="small")
+      thead.sticky.top-0.z-3
+        tr
+          th.w-10
+          th.w-40 Date
+          th Description
+          th.w-50 Credit
+          th.w-50 Debit
+          th.w-50 Accumulated
+          th.w-10
+            .i-carbon-add-alt(hover="bg-green-7 cursor-pointer" @click="addTransaction")
+      tbody
+        tr(
+          v-for="transaction, i in transactions"
+          :draggable="i === draggableRow"
+          @dragstart="draggingIndex = i"
+          @dragover.prevent
+          @drop="dropTransaction(i)"
+        )
+          td.cursor-move(@mousedown="draggableRow = i") {{ i+1 }}
+          td
+            n-date-picker(v-model:value="transaction.date" type="date")
+          td
+            n-input(v-model:value="transaction.description")
+          td.text-right(:class="dataClasses[i].credit")
+            n-input-number(v-model:value="transaction.credit" step="0.01" :format="v => v?.toFixed(2) || ''")
+          td.text-right(:class="dataClasses[i].debit")
+            n-input-number(v-model:value="transaction.debit" step="0.01" :format="v => v?.toFixed(2) || ''")
+          td.text-right(:class="dataClasses[i].accumulated") {{ accumulatedAmounts[i].toFixed(2) }}
+          td
+            .i-carbon-subtract-alt(hover="bg-red-7 cursor-pointer" @click="removeTransaction(i)")
 </template>
+
+<style scoped lang="scss">
+:deep(.input-red) {
+  color: red;
+
+  input {
+    color: red;
+  }
+}
+
+:deep(.input-green) {
+  color: green;
+
+  input {
+    color: green;
+  }
+}
+
+:deep(.input-grey) {
+  color: lightgrey;
+
+  input {
+    color: lightgrey;
+  }
+}</style>
