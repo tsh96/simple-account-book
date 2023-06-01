@@ -9,6 +9,7 @@ import AutoImport from 'unplugin-auto-import/vite'
 import UnoCSS from 'unocss/vite'
 import VueMacros from 'unplugin-vue-macros/vite'
 import { NaiveUiResolver } from 'unplugin-vue-components/resolvers'
+import { VitePWA } from 'vite-plugin-pwa'
 
 export default defineConfig({
   resolve: {
@@ -17,6 +18,7 @@ export default defineConfig({
     },
   },
   plugins: [
+    VitePWA(),
     VueMacros({
       defineOptions: false,
       defineModels: false,
