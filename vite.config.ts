@@ -12,6 +12,7 @@ import { NaiveUiResolver } from 'unplugin-vue-components/resolvers'
 import { VitePWA } from 'vite-plugin-pwa'
 
 export default defineConfig({
+  base: '/simple-account-book/',
   resolve: {
     alias: {
       '~/': `${path.resolve(__dirname, 'src')}/`,
