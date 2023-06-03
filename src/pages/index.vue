@@ -1,16 +1,15 @@
 <script setup lang="ts" generic="T extends any, O extends any">
+import { useTransactions, format, parse } from '~/composables/transaction';
 defineOptions({
   name: 'IndexPage',
 })
 
-interface Transaction {
-  date: number
-  description: string
-  credit: number
-  debit: number
-}
+const {
+  transactions,
+  accumulatedAmounts,
+  dataClasses,
+} = useTransactions()
 
-const transactions = useStorage<Transaction[]>('transactions', [])
 // sort transactions by date when changed
 watch(transactions, () => {
   transactions.value.sort((a, b) => a.date - b.date)
@@ -22,24 +21,6 @@ useEventListener('mouseup', () => {
 })
 const draggingIndex = ref(-1)
 
-const accumulatedAmounts = computed(() => {
-  let accumulated = 0
-
-  return transactions.value.map((transaction) => {
-    accumulated += transaction.credit - transaction.debit
-    return accumulated
-  })
-})
-
-const dataClasses = computed(() => {
-  return transactions.value.map((transaction, i) => {
-    return {
-      credit: transaction.credit > 0 ? 'input-green' : 'input-grey',
-      debit: transaction.debit > 0 ? 'input-red' : 'input-grey',
-      accumulated: transaction.credit - transaction.debit === 0 ? 'input-grey' : accumulatedAmounts.value[i] > 0 ? 'input-green' : 'input-red',
-    }
-  })
-})
 
 function addTransaction() {
   const today = new Date()
@@ -77,18 +58,6 @@ function download() {
   document.body.removeChild(element)
 }
 
-// return the number to money format which is separated by comma with 2 decimal places
-function format(v: number | null) {
-  if (!v) return ''
-  return v.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')
-}
-
-// convert money format to number
-function parse(v: string) {
-  if (!v) return 0
-  return parseFloat(v.replace(/,/g, ''))
-}
-
 function upload() {
   const input = document.createElement('input')
   input.type = 'file'
@@ -115,15 +84,22 @@ function upload() {
   }
   input.click()
 }
+
+//print function open a new window and print the table
+function print() {
+  window.open('./print', '_blank')
+}
 </script>
 
 <template lang="pug">
 .mx-8.flex.flex-col.h-screen.gap-y-2
-  h1(text="4xl" flex) Simple Account Book
-    n-button(text @click="upload()")
+  h1.gap-x-4(text="4xl" flex) Simple Account Book
+    n-button(text @click="upload()" title="Upload")
       .i-carbon-upload.text-3xl
-    n-button(text @click="download()")
+    n-button(text @click="download()" title="Download")
       .i-carbon-download.text-3xl
+    n-button(text @click="print()" title="Print")
+      .i-carbon-printer.text-3xl
   .overflow-auto.flex-grow.outline.outline-1.outline-grey.pb-100
     n-table(:bordered="false" style="overflow: visible;" size="small")
       thead.sticky.top-0.z-3
@@ -131,9 +107,9 @@ function upload() {
           th.w-10
           th.w-40 Date
           th Description
-          th.w-50 Credit
-          th.w-50 Debit
-          th.w-50 Accumulated
+          th.w-40 Credit
+          th.w-40 Debit
+          th.w-40 Accumulated
           th.w-10
             .i-carbon-add-alt(hover="bg-green-7 cursor-pointer" @click="addTransaction")
       tbody
@@ -173,26 +149,6 @@ function upload() {
             .i-carbon-subtract-alt(hover="bg-red-7 cursor-pointer" @click="removeTransaction(i)")
 </template>
 
-<style scoped lang="scss">
-:deep(.input-red) {
-  color: red;
-}
-
-:deep(.input-green) {
-  color: green;
-}
-
-:deep(.input-grey) {
-  color: grey;
-}
-
-:deep() {
-  font-family: 'Courier New', Courier, monospace;
-}
-
-:deep() {
-  table td {
-    padding: 0.25rem 0.5rem;
-  }
-}
+<style lang="scss" scoped>
+@import "~/styles/common.scss";
 </style>
