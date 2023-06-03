@@ -32,11 +32,11 @@ const accumulatedAmounts = computed(() => {
 })
 
 const dataClasses = computed(() => {
-  return transactions.value.map((transaction) => {
+  return transactions.value.map((transaction, i) => {
     return {
       credit: transaction.credit > 0 ? 'input-green' : 'input-grey',
       debit: transaction.debit > 0 ? 'input-red' : 'input-grey',
-      accumulated: transaction.credit - transaction.debit === 0 ? 'input-grey' : transaction.credit - transaction.debit > 0 ? 'input-green' : 'input-red',
+      accumulated: transaction.credit - transaction.debit === 0 ? 'input-grey' : accumulatedAmounts.value[i] > 0 ? 'input-green' : 'input-red',
     }
   })
 })
@@ -75,6 +75,18 @@ function download() {
   element.click()
 
   document.body.removeChild(element)
+}
+
+// return the number to money format which is separated by comma with 2 decimal places
+function format(v: number | null) {
+  if (!v) return ''
+  return v.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+}
+
+// convert money format to number
+function parse(v: string) {
+  if (!v) return 0
+  return parseFloat(v.replace(/,/g, ''))
 }
 
 function upload() {
@@ -134,14 +146,29 @@ function upload() {
         )
           td.cursor-move(@mousedown="draggableRow = i") {{ i+1 }}
           td
-            n-date-picker(v-model:value="transaction.date" type="date")
+            n-date-picker(v-model:value="transaction.date" type="date" size="small")
           td
-            n-input(v-model:value="transaction.description")
-          td.text-right(:class="dataClasses[i].credit")
-            n-input-number(v-model:value="transaction.credit" step="0.01" :format="v => v?.toFixed(2) || ''")
-          td.text-right(:class="dataClasses[i].debit")
-            n-input-number(v-model:value="transaction.debit" step="0.01" :format="v => v?.toFixed(2) || ''")
-          td.text-right(:class="dataClasses[i].accumulated") {{ accumulatedAmounts[i].toFixed(2) }}
+            n-input(v-model:value="transaction.description" size="small")
+          td.text-right
+            n-input-number(
+              v-model:value="transaction.credit"
+              step="0.01"
+              :format="format"
+              :parse="parse"
+              :show-button="false" placeholder=""
+              size="small"
+            )
+          td.text-right
+            n-input-number(
+              v-model:value="transaction.debit"
+              step="0.01"
+              :format="format"
+              :parse="parse"
+              :show-button="false"
+              placeholder=""
+              size="small"
+            )
+          td.text-right(:class="dataClasses[i].accumulated") {{ format(accumulatedAmounts[i]) }}
           td
             .i-carbon-subtract-alt(hover="bg-red-7 cursor-pointer" @click="removeTransaction(i)")
 </template>
@@ -149,24 +176,23 @@ function upload() {
 <style scoped lang="scss">
 :deep(.input-red) {
   color: red;
-
-  input {
-    color: red;
-  }
 }
 
 :deep(.input-green) {
   color: green;
-
-  input {
-    color: green;
-  }
 }
 
 :deep(.input-grey) {
-  color: lightgrey;
+  color: grey;
+}
 
-  input {
-    color: lightgrey;
+:deep() {
+  font-family: 'Courier New', Courier, monospace;
+}
+
+:deep() {
+  table td {
+    padding: 0.25rem 0.5rem;
   }
-}</style>
+}
+</style>
