@@ -65,7 +65,9 @@ function dropTransaction(index: number) {
 function download() {
   const element = document.createElement('a')
   element.setAttribute('href', `data:text/plain;charset=utf-8,${encodeURIComponent(JSON.stringify(transactions.value))}`)
-  element.setAttribute('download', 'transactions.json')
+  const nowDate = new Date()
+  const now = `${nowDate.getFullYear()}-${(nowDate.getMonth() + 1).toString().padStart(2, '0')}-${nowDate.getDate().toString().padStart(2, "0")} ${nowDate.getHours().toString().padStart(2, '0')}-${nowDate.getMinutes().toString().padStart(2, '0')}-${nowDate.getSeconds().toString().padStart(2, '0')}`
+  element.setAttribute('download', `transactions ${now}.json`)
 
   element.style.display = 'none'
   document.body.appendChild(element)
