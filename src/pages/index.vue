@@ -1,4 +1,5 @@
 <script setup lang="ts" generic="T extends any, O extends any">
+import { compact } from 'lodash'
 import { useTransactions, format, parse } from '~/composables/transaction';
 defineOptions({
   name: 'IndexPage',
@@ -9,6 +10,20 @@ const {
   accumulatedAmounts,
   dataClasses,
 } = useTransactions()
+
+const yearFilter = ref(new Date().getFullYear())
+
+const filteredTransactions = computed(() => {
+  return compact(transactions.value.map((transaction, index) => {
+    const date = new Date(transaction.date)
+    if (date.getFullYear() === yearFilter.value) {
+      return {
+        transaction,
+        index,
+      }
+    }
+  }))
+})
 
 // sort transactions by date when changed
 watch(transactions, () => {
@@ -94,6 +109,7 @@ function print() {
 <template lang="pug">
 .mx-8.flex.flex-col.h-screen.gap-y-2
   h1.gap-x-4(text="4xl" flex) Simple Account Book
+    n-input-number(v-model:value="yearFilter" size="small" min="2020" max="2099" step="1")
     n-button(text @click="upload()" title="Upload")
       .i-carbon-upload.text-3xl
     n-button(text @click="download()" title="Download")
@@ -114,7 +130,7 @@ function print() {
             .i-carbon-add-alt(hover="bg-green-7 cursor-pointer" @click="addTransaction")
       tbody
         tr(
-          v-for="transaction, i in transactions"
+          v-for="{transaction, index: i} in filteredTransactions"
           :draggable="i === draggableRow"
           @dragstart="draggingIndex = i"
           @dragover.prevent
